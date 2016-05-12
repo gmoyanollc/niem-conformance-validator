@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." name="validate" default="validate-niem-conformance" 
+xmlns:if="ant:if"
+xmlns:unless="ant:unless"
+xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
+
+<description>
+  Validate NIEM extension schema conformance using Ant.  
+  
+  The default task "validate-niem-conformance" runs ISO Schematron XSL transformations 
+  against NIEM Schematron rules.  A report is produced in ISO SRVL, followed by a transformation to HTML.
+  A final report is generated for each XML Schema in a folder named "report".
+  
+  Update the folder and file paths contained in this file as necessary and then test the configuration:
+  
+    ant test-config -lib [path-to-saxon-jar-file]
+    
+  Example command-line:
+  
+    ant test-config -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+   
+  An argument may include an absolute or relative path.  
+  If a path to a file is not specified, a global property value is applied.
+  Argument for a FileSet may contain an absolute file name or a string containing wildcard characters.
+  
+  Example command-line:
+  
+  ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" 
+    -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+  
+  The following command displays main tasks and their description:
+  
+    ant -projecthelp
+  
+      --------------------------
+    --  author:  George Moyano  --
+  --    version: 1.0.10            --
+    --  updated: May 2016       --
+      --------------------------
+</description>
+  
+  <!-- validate this folder -->
+  <property name="xml-to-validate.dir" 
+    value="/project/src/main/resources/iep-schema/extension"/>
+
+  <property name="xsl-transformer.jar" 
+    value="${basedir}/external/saxon/SaxonHE9-7-0-1J/saxon9he.jar"/>
+  <!-- The factory name depends on the transformer and edition,
+  see http://www.saxonica.com/html/documentation/using-xsl/embedding/jaxp-transformation.html -->
+  <property name="xsl-transformer-factory.name" value="net.sf.saxon.TransformerFactoryImpl"/>
+  <property name="iso-xslt.dir" 
+    value="${basedir}/external/iso-schematron-xslt2"/>
+  <property name="iso-xslt-temp.dir" value="${basedir}/temp"/>
+  <property name="niem-schematron.dir" 
+    value="${basedir}/external/niem-ndr/3.0"/>
+  
+  <!-- Transform a fileset and produce correspondingly named output files -->
+  <macrodef name="xsl-transform-fileset">
+    <attribute name="inFileDir"/> 
+    <attribute name="inFileSet"/>
+    <attribute name="xslFile"/>
+    <attribute name="outFileDir"/>
+    <attribute name="outFileNameExtension" default=""/>
+    <sequential>
+      <local name="inFileDir"/>
+      <local name="xslFileDir"/>
+      <!--<local name="xslFileName"/>-->
+      <local name="xsdOutputFileName"/>
+      <!--<local name="mtfClassName"/>-->
+      <local name="inFileSet.available"/>
+      <local name="xslFile.available"/>
+      <local name="outFileDir.available"/>
+      <echo message="@@{inFileDir}: @{inFileDir}"/>
+      <echo message="@@{xslFile}: @{xslFile}"/>
+      <echo message="@@{outFileDir}: @{outFileDir}"/>
+      <fail message="[ERROR] Directory not available.  Confirm @{inFileDir}.">
+        <condition>
+          <not>
+            <available  file="@{inFileDir}" />
+          </not>
+        </condition>
+      </fail>
+      <fail message="[ERROR] File not available.  Confirm @{xslFile}">
+        <condition>
+          <not>
+            <available file="@{xslFile}" />
+          </not>
+        </condition>
+      </fail>
+      <fail message="[ERROR] Directory not available.  Confirm @{outFileDir} ">
+        <condition>
+          <not>
+            <available file="@{outFileDir}" />
+          </not>
+        </condition>
+      </fail>
+<!--      <dirname property="inFileDir" file="@{inFile}"/>
+      <echo message="$${inFileDir}: ${inFileDir}"/>-->
+      <dirname property="xslFileDir" file="@{xslFile}"/>
+      <echo message="$${xslFileDir}: ${xslFileDir}"/>
+      <testSaxonClassPathMatch/>
+      <xslt
+        destdir="@{outFileDir}" force="true"
+        style="@{xslFile}" useimplicitfileset="false">
+        <!-- pass an argument to stylesheet parameter as required -->
+        <!--<param name="paramDocumentUri6040" expression="${inFileDir}"/>
+        <param name="paramTransformUriBase" expression="${xslFileDir}"/>-->
+        <chainedmapper>
+          <flattenmapper/>
+          <!-- customize output file name as required -->
+          <mapper from="*" to="*.@{outFileNameExtension}" type="glob"/>  
+          <!--<mapper from="*" to="@{outFileName}" type="glob"/>-->  
+        </chainedmapper>
+        <classpath path="${xsl-transformer.jar}"/>       
+        <factory name="${xsl-transformer-factory.name}"/>
+        <!-- customize input file set -->
+        <fileset includes="@{inFileSet}" dir="@{inFileDir}"/>       
+        <!--<file file="@{inFile}"/>-->
+      </xslt>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="xsl-transform">
+    <attribute name="inFile"/>
+    <!--<attribute name="inFileDir" default="${mtf-6040.schema.main.dir}"/>-->
+    <attribute name="xslFile"/>
+    <attribute name="outFileDir"/>
+    <attribute name="outFileName"/>
+    <element name="xsl-param-list" optional="true"/>
+    <!--<attribute name="outFileNameExtension" default=""/>-->
+    <sequential>
+      <local name="inFileDir"/>
+      <local name="xslFileDir"/>
+      <!--<local name="xslFileName"/>-->
+      <local name="xsdOutputFileName"/>
+      <!--<local name="mtfClassName"/>-->
+      <local name="inFile.available"/>
+      <local name="xslFile.available"/>
+      <local name="outFileDir.available"/>
+      <echo message="@@{inFile}: @{inFile}"/>
+      <echo message="@@{xslFile}: @{xslFile}"/>
+      <echo message="@@{outFileDir}: @{outFileDir}"/>
+      <fail message="[ERROR] File not available.  Confirm @{inFile}.">
+        <condition>
+          <not>
+            <available file="@{inFile}" />
+          </not>
+        </condition>
+      </fail>
+      <fail message="[ERROR] File not available.  Confirm @{xslFile}">
+        <condition>
+          <not>
+            <available file="@{xslFile}" />
+          </not>
+        </condition>
+      </fail>
+      <fail message="[ERROR] Directory not available.  Confirm @{outFileDir} ">
+        <condition>
+          <not>
+            <available file="@{outFileDir}" />
+          </not>
+        </condition>
+      </fail>
+      <dirname property="inFileDir" file="@{inFile}"/>
+      <echo message="$${inFileDir}: ${inFileDir}"/>
+      <dirname property="xslFileDir" file="@{xslFile}"/>
+      <echo message="$${xslFileDir}: ${xslFileDir}"/>
+      <testSaxonClassPathMatch/>
+      <xslt
+        destdir="@{outFileDir}" force="true"
+        style="@{xslFile}" useimplicitfileset="false">
+        <!-- pass an argument to stylesheet parameter as required -->
+        <!--<param name="paramDocumentUri6040" expression="${inFileDir}"/>-->
+        <!--<param name="allow-foreign" expression="true"/>-->
+        <xsl-param-list/>
+        <chainedmapper>
+          <flattenmapper/>
+          <!-- customize output file name as required -->
+          <!--<mapper from="*" to="*_@{xslFileName}_output.@{outFileNameExtension}" type="glob"/>  -->
+          <mapper from="*" to="@{outFileName}" type="glob"/>  
+        </chainedmapper>
+        <classpath path="${xsl-transformer.jar}"/>       
+        <factory name="${xsl-transformer-factory.name}"/>
+        <!-- customize input file set -->
+        <!--<fileset includes="@{inFileSet}" dir="@{inFileDir}"/>    -->   
+        <file file="@{inFile}"/>
+      </xslt>
+    </sequential>
+  </macrodef>
+
+  <!-- Validation implements ISO Schematron 2010 XSLTs -->
+  <macrodef name="generate-schematron-validation" >
+    <attribute name="schematrondir"/>
+    <attribute name="schematronfile"/>
+    <sequential>
+      <echo message="@@{schematrondir}/@@{schematronfile}: @{schematrondir}/@{schematronfile}"/>
+      <echo message="[INFO] expanding inclusions from @@{schematronfile} : {@schematronfile}"/>
+      <xsl-transform
+        inFile="@{schematrondir}/@{schematronfile}"
+        xslFile="${iso-xslt.dir}/iso_dsdl_include.xsl" 
+        outFileDir="${iso-xslt-temp.dir}"
+        outFileName="test1.sch"/>
+      <echo message="[INFO] expanding abstract patterns from @@{schematronfile} : @{schematronfile}"/>
+      <xsl-transform
+        inFile="${iso-xslt-temp.dir}/test1.sch"
+        xslFile="${iso-xslt.dir}/iso_abstract_expand.xsl" 
+        outFileDir="${iso-xslt-temp.dir}"
+        outFileName="test2.sch"/>
+      <echo message="[INFO] generating schematron validation stylesheet @@{schematronfile}.xsl : @{schematronfile}.xsl"/>
+      <xsl-transform
+        inFile="${iso-xslt-temp.dir}/test2.sch"
+        xslFile="${iso-xslt.dir}/iso_svrl_for_xslt2.xsl" 
+        outFileDir="${iso-xslt-temp.dir}"
+        outFileName="@{schematronfile}.xsl">
+        <xsl-param-list>
+          <param name="allow-foreign" expression="true"/>
+        </xsl-param-list>
+      </xsl-transform>
+    </sequential>
+  </macrodef>
+  
+  <target name="validate-niem-conformance">
+    <local name="niem-schematron.file"/>
+    <local name="report-dir.list"/>
+    <property name="niem-schematron.file" 
+      value="ndr-rules-conformance-target-ext.sch"/>
+    <echo message="copying test dependencies to working temp folder..."/>
+    <copy todir="${iso-xslt-temp.dir}">
+      <fileset 
+        dir="${niem-schematron.dir}"
+        includes="ndr-functions*.xsl"/>
+    </copy>
+    <generate-schematron-validation 
+      schematrondir="${niem-schematron.dir}"
+      schematronfile="${niem-schematron.file}"/>
+    <xsl-transform-fileset
+      inFileDir="${xml-to-validate.dir}"
+      inFileSet="*.xsd"
+      xslFile="${iso-xslt-temp.dir}/${niem-schematron.file}.xsl" 
+      outFileDir="${iso-xslt-temp.dir}"
+      outFileNameExtension="svrl"/>
+    <mkdir dir="${basedir}/report"/>
+    <xsl-transform-fileset
+      inFileDir="${iso-xslt-temp.dir}"
+      inFileSet="*.svrl"
+      xslFile="${basedir}/svrl-to-html.xsl" 
+      outFileDir="${basedir}/report"
+      outFileNameExtension="html"/>
+    <echo message="[INFO] locate the following conformance report(s) in ${basedir}/report"/>
+    <exec dir="${basedir}/report" executable="ls" os="Linux"/>
+    <exec dir="${basedir}/report" executable="dir" os="Windows"/>
+  </target>
+  
+  <macrodef name="timestamp.echo"> 
+    <attribute name="message" default=""/>    
+    <sequential> 
+      <local name="current.time" />
+      <tstamp> 
+        <format property="current.time" pattern="dd/MM/yyyy hh:mm:ss"/> 
+      </tstamp>          
+      <echo message="@{message} ${current.time}" />
+    </sequential> 
+  </macrodef>
+  
+  <macrodef name="math.increment">
+    <attribute name="operator1"/>
+    <attribute name="result"/>
+    <sequential>
+      <script language="javascript">
+        var operator = project.getProperty("@{operator1}");
+        <!--project.setProperty("@{result}", parseInt("@{operator1}")+1);-->
+        if (!operator)
+        project.setProperty("@{result}", 1);
+        <!--project.setProperty(attributes.get("@result"), 1);-->
+        <!--var operator1 = parseInt("@{operator1}");
+          if ( isNaN(operator1) )
+            project.setProperty("@{result}", 1);-->
+        else
+        project.setProperty("@{result}", parseInt(operator) + 1);
+      </script>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="test.ant.scripting">
+    <sequential>
+      <local name="testOperator"/>
+      <local name="testResult"/>
+      <property name="testOperator" value="1"/>
+      <echo message="testing Ant scripting..."/>
+      <echo message="$${testOperator}: ${testOperator}"/>
+      <math.increment operator1="testOperator" 
+        result="testResult"/>
+      <echo message="++ = ${testResult}"/>
+      <echo message="$${testResult}: ${testResult}"/>
+      <math.increment operator1="testResult" 
+        result="testResult"/>
+      <echo message="++ = ${testResult}"/>
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="testSaxonClassPathMatch">
+    <sequential>
+      <local name="_saxonClassPathMatch"/>
+      <echo message="matching 'saxon' in Java ClassPath..."/>
+      <script language="javascript">
+        <![CDATA[
+        var arrayJavaClassPath = project.getProperty('java.class.path').split(':');
+        var keySaxonClassPathMatch = -1;
+        
+        for (key = 0; key < arrayJavaClassPath.length; ++key) {
+          value = arrayJavaClassPath[key];
+          if ( value.match(/saxon/i) ) {
+            keySaxonClassPathMatch = key;
+            break;
+          }
+        }
+        
+        if (keySaxonClassPathMatch != -1)
+          project.setProperty('_saxonClassPathMatch', arrayJavaClassPath[keySaxonClassPathMatch]);
+          else project.setProperty('_saxonClassPathMatch', 'Saxon NOT MATCHED in java.class.path');
+        ]]>
+      </script>
+      <echo message="$${_saxonClassPathMatch}: ${_saxonClassPathMatch}"/>
+      <echo>class path to Saxon may be provided via ant command-line agrument '-lib' for provider net.sf.saxon.TransformerFactoryImpl"</echo>
+      <echo message="$${xsl-transformer.jar}: ${xsl-transformer.jar}"/>
+      <fail message="${_saxonClassPathMatch}">
+        Try again with the 'lib' command-line argument, for example: 'ant -lib ${xsl-transformer.jar}'
+        <condition>
+          <contains string="${_saxonClassPathMatch}" substring="NOT MATCHED"/>
+          <!--<equals arg1="${_saxonClassPathMatch}" arg2="NOT MATCHED"/>-->
+        </condition>
+      </fail>
+    </sequential>
+  </macrodef>
+  
+  <target name="test-config">
+    <timestamp.echo message=""/>
+    <echo message="$${ant.version}: ${ant.version}"/>
+    <echo message="$${ant.file}: ${ant.file}"/>
+    <echo message="$${basedir}: ${basedir}"/>
+    <echo message="$${ant.java.version}: ${ant.java.version}"/>
+    <echo message="$${os.name}: ${os.name}"/>
+    <test.ant.scripting/>
+    <testSaxonClassPathMatch/>
+  </target>
+  
+</project>
