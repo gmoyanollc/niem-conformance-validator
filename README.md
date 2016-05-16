@@ -1,6 +1,6 @@
 ## niem-conformance-validator
 
-niem-conformance-validator is a single-purposed component that assesses the NIEM 3.0 conformance of XML Schema.  The only run requirement is to have an installation of [ <a href="http://ant.apache.org/" target="_blank">Apache Ant</a> ].  Using Ant, run it adhoc from the command-line or add it to build and test automation.
+niem-conformance-validator is a single-purposed component that assesses the NIEM 3.0 conformance of XML Schema.  The only run requirement is to have an installation of [ <a href="http://ant.apache.org/" target="_blank">Apache Ant</a> ].  With Ant and/or Maven, add niem-conformance-validator to build and test automation, or run it ad-hoc from the command-line when an IDE slows you down.
 
 Included with this component are the following:
 
