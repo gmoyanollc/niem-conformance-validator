@@ -11,22 +11,28 @@ xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
   against NIEM Schematron rules.  A report is produced in ISO SRVL, followed by a transformation to HTML.
   A final report is generated for each XML Schema in a folder named "report".
   
-  Update the folder and file paths contained in this file as necessary and then test the configuration:
+  To test the configuration for Ant and Saxon:   
   
-    ant test-config -lib [path-to-saxon-jar-file]
-    
-  Example command-line:
-  
+    cd niem-conformance-validator
     ant test-config -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
-   
-  An argument may include an absolute or relative path.  
-  If a path to a file is not specified, a global property value is applied.
-  Argument for a FileSet may contain an absolute file name or a string containing wildcard characters.
+  
+  Expected result:
+  
+    ...
+    BUILD SUCCESSFUL
+    ...
+  
+  To run and validate an XML Schema folder, provide its folder path as a value to the Ant Property 'xml-to-validate.dir':
   
   Example command-line:
   
-  ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" 
-    -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+    ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+  
+  Expected result:
+  
+    ...
+    BUILD SUCCESSFUL
+    ...
   
   The following command displays main tasks and their description:
   

@@ -29,13 +29,47 @@ Included with this component are the following:
 
 *  an XSL reference implementation of [ <a href="https://www.iso.org/obp/ui/#iso:std:iso-iec:19757:-3:ed-2:v1:en" target="_blank">Rule-based validation — Schematron (ISO/IEC 19757-3:2016)</a> ], as proposed in 2010.  
 
-# How to clone this repository
-To clone this repository, first download [ <a href="https://git-scm.com" target="_blank">git</a> ] , if you don't already have it.
+How to get started
+------------------
+1. [git-clone] (https://git-scm.com) this repository to a folder for projects:
 
-With git is installed, enter the following in a target directory:
-
-    git clone https://github.com/gmoyanollc/validate-niem-conformance
+        cd dev-project
+        git clone https://github.com/gmoyanollc/niem-conformance-validator
     
-Let me know what you think!
+    Expected result:
+    
+        .
+        `-- niem-conformance-validator
+            `-- external
+                |-- iso-schematron-xslt2
+                |-- niem-ndr
+                `-- saxon
+    
+2. Test the configuration for Ant and Saxon:   
+
+        cd niem-conformance-validator
+        ant test-config -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+        
+    Expected result:
+    
+        ...
+        BUILD SUCCESSFUL
+        ...
+        
+3. Run and validate an XML Schema folder by providing its folder path as a value to the Ant Property 'xml-to-validate.dir':
+
+    Example command-line:
+      
+      ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+      
+    Expected result:
+    
+        ...
+        BUILD SUCCESSFUL
+        ...
+        
+Feedback
+--------
+If you feel like the component is missing a feature or has a defect, contact me or create an [issue] (https://github.com/gmoyanollc/niem-conformance-validator/issues). When creating a new issue, please provide a comprehensive description of your concern. Especially for fixing bugs it is crucial that I can reproduce your problem. For this reason, entire debug logs, source or most preferably little demo projects attached to the issue are very much appreciated. Of course, patches are welcome, too.
 
 https://github.com/gmoyanollc
