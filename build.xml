@@ -11,28 +11,28 @@ xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
   against NIEM Schematron rules.  A report is produced in ISO SRVL, followed by a transformation to HTML.
   A final report is generated for each XML Schema in a folder named "report".
   
-  To test the configuration for Ant and Saxon:   
+  Update the folder and file paths contained in this file as necessary and then test the configuration:
   
-    cd niem-conformance-validator
+    ant test-config -lib [path-to-saxon-jar-file]
+    
+  Example command-line:
+  
     ant test-config -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
-  
+    
   Expected result:
-  
-    ...
-    BUILD SUCCESSFUL
-    ...
-  
-  To run and validate an XML Schema folder, provide its folder path as a value to the Ant Property 'xml-to-validate.dir':
+	
+	...
+	BUILD SUCCESSFUL
+	...
+   
+  An argument may include an absolute or relative path.  
+  If a path to a file is not specified, a global property value is applied.
+  Argument for a FileSet may contain an absolute file name or a string containing wildcard characters.
   
   Example command-line:
   
-    ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
-  
-  Expected result:
-  
-    ...
-    BUILD SUCCESSFUL
-    ...
+  ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" 
+    -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
   
   The following command displays main tasks and their description:
   
@@ -40,7 +40,7 @@ xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
   
       --------------------------
     --  author:  George Moyano  --
-  --    version: 1.0.10            --
+  --    version: 1.0.11            --
     --  updated: May 2016       --
       --------------------------
 </description>
@@ -262,7 +262,7 @@ xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
     <sequential> 
       <local name="current.time" />
       <tstamp> 
-        <format property="current.time" pattern="dd/MM/yyyy hh:mm:ss"/> 
+        <format property="current.time" pattern="yyyy/MM/dd hh:mm:ss"/> 
       </tstamp>          
       <echo message="@{message} ${current.time}" />
     </sequential> 
@@ -289,18 +289,19 @@ xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
   
   <macrodef name="test.ant.scripting">
     <sequential>
-      <local name="testOperator"/>
-      <local name="testResult"/>
-      <property name="testOperator" value="1"/>
-      <echo message="testing Ant scripting..."/>
-      <echo message="$${testOperator}: ${testOperator}"/>
-      <math.increment operator1="testOperator" 
-        result="testResult"/>
-      <echo message="++ = ${testResult}"/>
-      <echo message="$${testResult}: ${testResult}"/>
-      <math.increment operator1="testResult" 
-        result="testResult"/>
-      <echo message="++ = ${testResult}"/>
+      <local name="first-operator"/>
+      <local name="second-operator"/>
+      <local name="result"/>
+      <property name="first-operator" value="1"/>
+      <echo message="test Ant scripting, specifically JavaScript..."/>
+      <echo message="increment $${first-operator}: ${first-operator}"/>
+      <math.increment operator1="first-operator" 
+        result="result"/>
+      <echo message="${first-operator}++ = ${result}"/>
+      <property name="second-operator" value="${result}"/>
+      <math.increment operator1="second-operator" 
+        result="result"/>
+      <echo message="${second-operator}++ = ${result}"/>
     </sequential>
   </macrodef>
   
