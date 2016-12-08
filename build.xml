@@ -5,49 +5,60 @@ xmlns:unless="ant:unless"
 xmlns:xsl-transform="g.iob.tcg.mctssa.mcsc.usmc.mil/xsl-transform/2.0.0">
 
 <description>
-  Validate NIEM extension schema conformance using Ant.  
+  #Validate NIEM extension schema conformance using Ant.  
   
   The default task "validate-niem-conformance" runs ISO Schematron XSL transformations 
   against NIEM Schematron rules.  A report is produced in ISO SRVL, followed by a transformation to HTML.
   A final report is generated for each XML Schema in a folder named "report".
   
-  Update the folder and file paths contained in this file as necessary and then test the configuration:
+  #Validation usage
+  
+  ant -lib [path-to-saxon-jar-file] -Dxml-to-validate.dir=[path-to-xml-schema]
+  
+  ##Example command-lines
+  
+  The following validates a default path:
+  ```
+    ant -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
+  ```  
+  Change the value to global property "xml-to-validate.dir" for a different default path to validate.
+  
+  The following overrides the default path to validate:
+  ```
+    ant -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension"
+  ```  
+  The "-Dxml-to-validate.dir" argument may include an absolute or relative path.  Furthermore,
+  an argument for a FileSet may contain an absolute file name or a string containing wildcard characters.
+  
+  ##Additional usage
+  The following displays main tasks and their description:
+  ```
+    ant -projecthelp
+  ```
+  The following tests the configuration:
   
     ant test-config -lib [path-to-saxon-jar-file]
     
   Example command-line:
-  
+  ```
     ant test-config -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
-    
-  Expected result:
-	
-	...
+  ```
+  Expected end-result:
+	```
 	BUILD SUCCESSFUL
-	...
-   
-  An argument may include an absolute or relative path.  
-  If a path to a file is not specified, a global property value is applied.
-  Argument for a FileSet may contain an absolute file name or a string containing wildcard characters.
-  
-  Example command-line:
-  
-  ant -Dxml-to-validate.dir="/project/src/main/resources/iep-schema/extension" 
-    -lib ./external/saxon/SaxonHE9-7-0-1J/saxon9he.jar
-  
-  The following command displays main tasks and their description:
-  
-    ant -projecthelp
-  
+	Total time: .. seconds
+  ```
+  #
       --------------------------
     --  author:  George Moyano  --
-  --    version: 1.0.11            --
-    --  updated: May 2016       --
+  --    version: 1.0.2            --
+    --  updated: Dec 2016       --
       --------------------------
 </description>
   
   <!-- validate this folder -->
   <property name="xml-to-validate.dir" 
-    value="/project/src/main/resources/iep-schema/extension"/>
+    value="../../../../main/resources/iep-schema/extension"/>
 
   <property name="xsl-transformer.jar" 
     value="${basedir}/external/saxon/SaxonHE9-7-0-1J/saxon9he.jar"/>
